@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src '{{.ScriptHash}}'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>SecureProjects report — {{.R.Scan.Target}}</title>
+<style>
+:root{--bg:#f7f8fa;--card:#fff;--fg:#1d2330;--muted:#5b6475;--line:#e3e6ec;--accent:#2f5bd3;
+--crit:#8e1b6f;--high:#c62828;--med:#b26a00;--low:#1f6fb2;--info:#6b7280;--unk:#6b7280;--ok:#1b7f3b}
+@media (prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1a1f29;--fg:#e6e9ef;--muted:#9aa3b5;--line:#2a3140;--accent:#7c9cff;
+--crit:#e070c8;--high:#ff6b6b;--med:#f0b44c;--low:#6cb4ff;--info:#9aa3b5;--unk:#9aa3b5;--ok:#53c27a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:20px 24px;border-bottom:1px solid var(--line);background:var(--card)}
+h1{margin:0 0 4px;font-size:20px}
+h2{font-size:16px;margin:24px 0 10px}
+.meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 18px}
+main{padding:16px 24px 40px;max-width:1400px;margin:0 auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.card .n{font-size:24px;font-weight:650;font-variant-numeric:tabular-nums}
+.card .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.sev-critical{color:var(--crit)}.sev-high{color:var(--high)}.sev-medium{color:var(--med)}.sev-low{color:var(--low)}.sev-info,.sev-unknown{color:var(--info)}
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:600;border:1px solid currentColor;white-space:nowrap}
+.kind-vulnerability{background:var(--high);color:#fff;border-color:var(--high)}
+.kind-potential-risk{color:var(--muted)}
+.gate{margin-top:12px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card)}
+.gate.fail{border-color:var(--high)}.gate.pass{border-color:var(--ok)}
+.notice{background:var(--card);border-left:4px solid var(--accent);padding:10px 12px;border-radius:4px;color:var(--muted);font-size:13px;margin-top:12px}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;position:sticky;top:0;z-index:2}
+.filters input[type=search]{flex:1;min-width:220px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+.filters select{padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+.filters label{font-size:13px;color:var(--muted);white-space:nowrap}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;background:var(--bg)}
+tr.f{cursor:pointer}tr.f:hover{background:var(--bg)}
+tr.d td{background:var(--bg);font-size:13px}
+tr.d{display:none}tr.d.open{display:table-row}
+.loc{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;word-break:break-all}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--card);border:1px solid var(--line);padding:8px;border-radius:6px;font-size:12px;margin:4px 0}
+dl{display:grid;grid-template-columns:150px 1fr;gap:4px 12px;margin:0}dt{color:var(--muted)}dd{margin:0}
+a{color:var(--accent)}
+.muted{color:var(--muted)}
+.hidden{display:none!important}
+.sup{opacity:.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:900px){.two{grid-template-columns:1fr}}
+.bar{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:13px}.bar span:first-child{width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar i{display:block;height:8px;background:var(--accent);border-radius:4px;min-width:2px}
+</style>
+</head>
+<body>
+<header>
+<h1>SecureProjects security report</h1>
+<div class="meta">
+<span><b>Target:</b> {{.R.Scan.Target}}</span>
+{{if .R.Scan.Repository}}<span><b>Repository:</b> {{.R.Scan.Repository}}</span>{{end}}
+{{if .R.Scan.Commit}}<span><b>Commit:</b> {{.R.Scan.Commit}}</span>{{end}}
+{{if .R.Scan.Branch}}<span><b>Branch:</b> {{.R.Scan.Branch}}</span>{{end}}
+<span><b>Date:</b> {{.R.Scan.StartedAt.Format "2006-01-02 15:04:05 MST"}}</span>
+<span><b>Tool:</b> SecureProjects {{.R.Tool.Version}}</span>
+<span><b>Mode:</b> {{if .R.Scan.Offline}}offline{{else}}online{{end}}, {{if .R.Scan.ActiveScan}}ACTIVE DAST{{else}}passive/safe{{end}}</span>
+<span><b>Schema:</b> {{.R.SchemaVersion}}</span>
+</div>
+</header>
+<main>
+<section>
+<div class="cards">
+<div class="card"><div class="n">{{.R.Summary.Open}}</div><div class="l">Open findings</div></div>
+{{range .Sevs}}<div class="card"><div class="n sev-{{.}}">{{index $.R.Summary.BySeverity .}}</div><div class="l">{{.}}</div></div>{{end}}
+<div class="card"><div class="n">{{index .R.Summary.ByKind "vulnerability"}}</div><div class="l">Confirmed vulns</div></div>
+<div class="card"><div class="n">{{index .R.Summary.ByKind "potential-risk"}}</div><div class="l">Potential risks</div></div>
+<div class="card"><div class="n">{{.R.Summary.Suppressed}}</div><div class="l">Suppressed</div></div>
+{{if .R.Summary.New}}<div class="card"><div class="n">{{.R.Summary.New}}</div><div class="l">New vs baseline</div></div>{{end}}
+</div>
+{{if eq .R.Summary.Gate.FailOn "none"}}<div class="gate">CI gate disabled (--fail-on none).</div>
+{{else if .R.Summary.Gate.Failed}}<div class="gate fail"><b class="sev-high">CI gate FAILED</b> — {{.R.Summary.Gate.FailingCount}} open finding(s) at or above <b>{{.R.Summary.Gate.FailOn}}</b>.</div>
+{{else}}<div class="gate pass"><b style="color:var(--ok)">CI gate passed</b> — no open findings at or above <b>{{.R.Summary.Gate.FailOn}}</b>.</div>{{end}}
+<div class="notice"><b>How to read this report.</b> <span class="badge kind-vulnerability">CONFIRMED</span> findings were matched by a vulnerability database or dedicated tool against an exact component version.
+<span class="badge kind-potential-risk">POTENTIAL</span> findings come from heuristics or policy checks and are <b>not</b> confirmed vulnerabilities; their confidence level says how likely they are true positives. Secrets are always redacted. Absence of findings does not prove absence of vulnerabilities.</div>
+</section>
+
+<section class="two">
+<div><h2>By category</h2>{{range .Cats}}<div class="bar"><span>{{.Key}}</span><i style="width:{{.Width}}px"></i><b>{{.Count}}</b></div>{{else}}<p class="muted">None.</p>{{end}}</div>
+<div><h2>By tool</h2>{{range .Tools}}<div class="bar"><span>{{.Key}}</span><i style="width:{{.Width}}px"></i><b>{{.Count}}</b></div>{{else}}<p class="muted">None.</p>{{end}}</div>
+<div><h2>Top files</h2>{{range .Files}}<div class="bar"><span class="loc" title="{{.Key}}">{{.Key}}</span><i style="width:{{.Width}}px"></i><b>{{.Count}}</b></div>{{else}}<p class="muted">None.</p>{{end}}</div>
+<div><h2>Scanners</h2>
+<table><thead><tr><th>Scanner</th><th>Status</th><th>Findings</th><th>Details</th></tr></thead><tbody>
+{{range .R.Scan.Scanners}}{{if and (ne .Status "not-applicable") (ne .Status "disabled")}}<tr><td>{{.Name}}{{if .Native}} <span class="muted">(native)</span>{{end}}</td><td>{{.Status}}</td><td>{{.Findings}}</td><td class="muted">{{.Mode}} {{.Version}} {{.Message}} {{if eq .Status "skipped"}}{{.InstallHint}}{{end}}</td></tr>{{end}}{{end}}
+</tbody></table></div>
+</section>
+
+<h2>Findings</h2>
+<div class="filters" id="filters">
+<input type="search" id="q" placeholder="Search title, file, CVE, package, rule…" aria-label="Search">
+<select id="fsev" aria-label="Minimum severity"><option value="0">All severities</option><option value="5">Critical</option><option value="4">High+</option><option value="3">Medium+</option><option value="2">Low+</option></select>
+<select id="fkind" aria-label="Kind"><option value="">All kinds</option><option value="vulnerability">Confirmed vulnerabilities</option><option value="potential-risk">Potential risks</option></select>
+<select id="fcat" aria-label="Category"><option value="">All categories</option>{{range .Cats}}<option value="{{.Key}}">{{.Key}}</option>{{end}}</select>
+<select id="ftool" aria-label="Tool"><option value="">All tools</option>{{range .Tools}}<option value="{{.Key}}">{{.Key}}</option>{{end}}</select>
+<select id="fconf" aria-label="Minimum confidence"><option value="0">Any confidence</option><option value="2">Medium+</option><option value="3">High</option></select>
+<label><input type="checkbox" id="fsup"> show suppressed</label>
+{{if .R.Summary.New}}<label><input type="checkbox" id="fnew"> only new</label>{{end}}
+<span class="muted" id="count"></span>
+</div>
+<table id="ft">
+<thead><tr><th>Prio</th><th>Severity</th><th>Kind</th><th>Conf.</th><th>Title</th><th>Location</th><th>Tools</th></tr></thead>
+<tbody>
+{{range $i, $f := .R.Findings}}
+<tr class="f{{if $f.Triage.Status.Suppressed}} sup{{end}}" data-i="{{$i}}" data-sev="{{$f.Severity.Rank}}" data-kind="{{$f.Kind}}" data-cat="{{$f.Category}}" data-tools="{{join $f.Tools " "}}" data-conf="{{$f.Confidence.Rank}}" data-sup="{{if $f.Triage.Status.Suppressed}}1{{else}}0{{end}}" data-new="{{if $f.IsNew}}{{if deref $f.IsNew}}1{{else}}0{{end}}{{else}}1{{end}}" data-text="{{searchText $f}}">
+<td>{{label $f.Priority}} <span class="muted">{{printf "%.0f" $f.Priority}}</span></td>
+<td><span class="badge sev-{{$f.Severity}}">{{$f.Severity}}</span></td>
+<td>{{if eq $f.Kind "vulnerability"}}<span class="badge kind-vulnerability">CONFIRMED</span>{{else}}<span class="badge kind-potential-risk">POTENTIAL</span>{{end}}</td>
+<td>{{$f.Confidence}}</td>
+<td>{{$f.Title}}{{if $f.Triage.Status.Suppressed}} <span class="muted">[{{$f.Triage.Status}}]</span>{{end}}{{if $f.IsNew}}{{if deref $f.IsNew}} <span class="badge">NEW</span>{{end}}{{end}}</td>
+<td class="loc">{{loc $f}}</td>
+<td class="muted">{{join $f.Tools ", "}}</td>
+</tr>
+<tr class="d" id="d{{$i}}"><td colspan="7"><dl>
+{{if $f.Description}}<dt>Description</dt><dd>{{$f.Description}}</dd>{{end}}
+{{if $f.Remediation}}<dt>Remediation</dt><dd><b>{{$f.Remediation}}</b></dd>{{end}}
+<dt>Category</dt><dd>{{$f.Category}}{{if $f.RuleID}} · rule <code>{{$f.RuleID}}</code>{{end}}{{if $f.RuleFamily}} · family <code>{{$f.RuleFamily}}</code>{{end}}</dd>
+{{if $f.CVSS}}<dt>CVSS</dt><dd>{{printf "%.1f" $f.CVSS.Score}} (v{{$f.CVSS.Version}}, {{$f.CVSS.Source}}) <span class="loc">{{$f.CVSS.Vector}}</span></dd>{{end}}
+{{if $f.CVE}}<dt>CVE</dt><dd>{{join $f.CVE ", "}}</dd>{{end}}
+{{if $f.Aliases}}<dt>Aliases</dt><dd>{{join $f.Aliases ", "}}</dd>{{end}}
+{{if $f.CWE}}<dt>CWE</dt><dd>{{join $f.CWE ", "}}</dd>{{end}}
+{{if $f.Package}}<dt>Package</dt><dd>{{$f.Package.Name}}@{{$f.Package.Version}} ({{$f.Package.Ecosystem}}){{if $f.Package.FixedVersions}} → fixed in {{join $f.Package.FixedVersions ", "}}{{end}}</dd>{{end}}
+{{if $f.Evidence}}<dt>Evidence (redacted)</dt><dd><pre>{{$f.Evidence}}</pre></dd>{{end}}
+{{if $f.Location.Commit}}<dt>Commit</dt><dd class="loc">{{$f.Location.Commit}}</dd>{{end}}
+{{if $f.Triage.Justification}}<dt>Triage</dt><dd>{{$f.Triage.Status}} — {{$f.Triage.Justification}} ({{$f.Triage.Source}})</dd>{{end}}
+{{if $f.AIExplanation}}<dt>AI explanation</dt><dd><i>Non-authoritative, generated by an LLM:</i><pre>{{$f.AIExplanation}}</pre></dd>{{end}}
+<dt>Fingerprint</dt><dd class="loc">{{$f.Fingerprint}}</dd>
+{{if $f.References}}<dt>References</dt><dd>{{range $f.References}}{{if safeURL .}}<a href="{{.}}" rel="noopener noreferrer" target="_blank">{{.}}</a><br>{{end}}{{end}}</dd>{{end}}
+</dl></td></tr>
+{{end}}
+</tbody>
+</table>
+<p class="muted" id="empty" style="display:none">No findings match the current filters.</p>
+<div class="notice">{{.R.Disclaimer}}</div>
+</main>
+<script>
+(function(){
+var $=function(id){return document.getElementById(id)};
+var rows=[].slice.call(document.querySelectorAll('tr.f'));
+function apply(){
+var q=$('q').value.toLowerCase().trim(),sev=+$('fsev').value,kind=$('fkind').value,cat=$('fcat').value,tool=$('ftool').value,conf=+$('fconf').value,sup=$('fsup').checked,nw=$('fnew')&&$('fnew').checked,n=0;
+rows.forEach(function(r){var d=r.dataset,ok=(+d.sev>=sev)&&(!kind||d.kind===kind)&&(!cat||d.cat===cat)&&(!tool||(' '+d.tools+' ').indexOf(' '+tool+' ')>=0)&&(+d.conf>=conf)&&(sup||d.sup==='0')&&(!nw||d.new==='1')&&(!q||d.text.indexOf(q)>=0);
+r.classList.toggle('hidden',!ok);var det=$('d'+d.i);if(!ok&&det){det.classList.remove('open')}if(ok)n++});
+$('count').textContent=n+' of '+rows.length+' shown';$('empty').style.display=n?'none':'block'}
+rows.forEach(function(r){r.addEventListener('click',function(){var d=$('d'+r.dataset.i);if(d)d.classList.toggle('open')})});
+['q','fsev','fkind','fcat','ftool','fconf','fsup','fnew'].forEach(function(id){var e=$(id);if(e){e.addEventListener('input',apply);e.addEventListener('change',apply)}});
+apply();
+})();
+</script>
+</body>
+</html>

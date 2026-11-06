@@ -1,0 +1,74 @@
+# SecureProjects built-in Semgrep rules (offline). Small on purpose: the
+# public registry ruleset (p/default) is added automatically when online.
+rules:
+  - id: secureprojects.python.subprocess-shell-true
+    languages: [python]
+    severity: ERROR
+    message: subprocess call with shell=True; untrusted input leads to command injection.
+    metadata: {cwe: ["CWE-78"], confidence: MEDIUM, secureprojects-family: sast.command-injection}
+    pattern: subprocess.$FUNC(..., shell=True, ...)
+  - id: secureprojects.python.pickle-load
+    languages: [python]
+    severity: ERROR
+    message: Deserializing untrusted data with pickle executes arbitrary code.
+    metadata: {cwe: ["CWE-502"], confidence: MEDIUM, secureprojects-family: sast.insecure-deserialization}
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: pickle.load(...)
+  - id: secureprojects.python.yaml-unsafe-load
+    languages: [python]
+    severity: ERROR
+    message: yaml.load without SafeLoader can instantiate arbitrary objects.
+    metadata: {cwe: ["CWE-502"], confidence: HIGH, secureprojects-family: sast.insecure-deserialization}
+    patterns:
+      - pattern: yaml.load(...)
+      - pattern-not: yaml.load(..., Loader=yaml.SafeLoader, ...)
+      - pattern-not: yaml.load(..., Loader=yaml.CSafeLoader, ...)
+  - id: secureprojects.python.eval
+    languages: [python]
+    severity: WARNING
+    message: eval() on dynamic input can lead to code injection.
+    metadata: {cwe: ["CWE-95"], confidence: MEDIUM, secureprojects-family: sast.code-injection}
+    patterns:
+      - pattern: eval($X)
+      - pattern-not: eval("...")
+  - id: secureprojects.python.requests-verify-false
+    languages: [python]
+    severity: ERROR
+    message: TLS certificate verification disabled.
+    metadata: {cwe: ["CWE-295"], confidence: HIGH, secureprojects-family: sast.tls-no-verify}
+    pattern: requests.$METHOD(..., verify=False, ...)
+  - id: secureprojects.go.tls-insecure-skip-verify
+    languages: [go]
+    severity: ERROR
+    message: InsecureSkipVerify disables TLS certificate verification.
+    metadata: {cwe: ["CWE-295"], confidence: HIGH, secureprojects-family: sast.tls-no-verify}
+    pattern: "tls.Config{..., InsecureSkipVerify: true, ...}"
+  - id: secureprojects.go.exec-shell
+    languages: [go]
+    severity: WARNING
+    message: Command executed through a shell interpreter; risk of command injection.
+    metadata: {cwe: ["CWE-78"], confidence: MEDIUM, secureprojects-family: sast.command-injection}
+    pattern-either:
+      - pattern: exec.Command("sh", "-c", ...)
+      - pattern: exec.Command("bash", "-c", ...)
+      - pattern: exec.CommandContext($CTX, "sh", "-c", ...)
+  - id: secureprojects.js.eval
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: eval() on dynamic input can lead to code injection.
+    metadata: {cwe: ["CWE-95"], confidence: MEDIUM, secureprojects-family: sast.code-injection}
+    patterns:
+      - pattern: eval($X)
+      - pattern-not: eval("...")
+  - id: secureprojects.js.child-process-exec
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: child_process.exec with a dynamic command string enables command injection.
+    metadata: {cwe: ["CWE-78"], confidence: MEDIUM, secureprojects-family: sast.command-injection}
+    patterns:
+      - pattern-either:
+          - pattern: $CP.exec($CMD, ...)
+          - pattern: exec($CMD, ...)
+      - pattern-not: $CP.exec("...", ...)
+      - pattern-not: exec("...", ...)

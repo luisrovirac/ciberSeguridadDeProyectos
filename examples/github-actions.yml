@@ -1,0 +1,70 @@
+# Copy to .github/workflows/secureprojects.yml
+name: secureprojects
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so gitleaks can scan it
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+
+      - name: Install SecureProjects
+        run: go install github.com/secureprojects/secureprojects/cmd/secureprojects@latest
+
+      - name: Restore databases (OSV index, Trivy/OSV-Scanner DBs)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/secureprojects
+          key: secureprojects-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: secureprojects-${{ runner.os }}-
+
+      - name: Update OSV database
+        run: secureprojects db update
+
+      - name: Tools available
+        run: secureprojects tools check
+
+      # On pull requests, only fail on findings that are new compared to main.
+      - name: Download baseline from main
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          branch: main
+          name: secureprojects-reports
+          path: baseline
+
+      - name: Scan
+        run: |
+          ARGS="-f table,json,sarif,html -o reports --fail-on high --online"
+          if [ -f baseline/secureprojects-report.json ]; then
+            ARGS="$ARGS --baseline baseline/secureprojects-report.json --diff"
+          fi
+          secureprojects scan . $ARGS
+
+      - name: Upload SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/secureprojects-report.sarif
+          category: secureprojects
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: secureprojects-reports
+          path: reports

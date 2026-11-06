@@ -1,0 +1,31 @@
+# Custom rules: single-line regular expressions (Go RE2 syntax).
+# Findings are always reported as kind=potential-risk, category "custom"
+# unless "category" is set. Use with: secureprojects scan . --rules this-file.yaml
+rules:
+  - id: ORG-INTERNAL-HOST
+    title: Hard-coded internal hostname
+    pattern: '\b[a-z0-9-]+\.corp\.example\.com\b'
+    extensions: [.go, .py, .js, .ts, .yaml, .yml]
+    severity: low
+    confidence: medium
+    message: Internal hostnames should come from configuration.
+    remediation: Move the hostname to an environment variable or config file.
+
+  - id: ORG-SECURITY-TODO
+    title: Unresolved security TODO
+    pattern: 'TODO\((security|sec)\)'
+    severity: info
+    confidence: high
+    message: A security-related TODO is still open.
+
+  - id: ORG-PY-REQUESTS-NO-TIMEOUT
+    title: requests call without timeout
+    pattern: 'requests\.(get|post|put|delete|patch)\('
+    exclude: 'timeout\s*='
+    files: ["**/*.py"]
+    severity: low
+    confidence: low
+    category: sast
+    cwe: [CWE-400]
+    message: HTTP calls without a timeout can hang forever.
+    remediation: Pass timeout=(connect, read).

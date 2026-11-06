@@ -1,0 +1,79 @@
+# SecureProjects example configuration.
+# Precedence: defaults < this file < SECUREPROJECTS_* environment variables < CLI flags.
+# Environment variables use upper-case keys with "_" for nesting, e.g.
+#   SECUREPROJECTS_FAIL_ON=critical  SECUREPROJECTS_LIMITS_TOOL_TIMEOUT=5m
+
+formats: [table, json, sarif, html]
+output: secureprojects-report
+fail_on: high                           # critical|high|medium|low|info|none
+# Heuristic (potential-risk) findings below this confidence never fail CI.
+fail_on_potential_min_confidence: medium
+
+offline: true          # default: never touch the network (use --online to let tools update their DBs)
+safe: true             # passive only; DAST requires --allow-active-scan
+scan_git_history: true # gitleaks scans the history when .git exists
+
+# baseline: previous-report.json
+# diff: true
+
+exclude:
+  - ".git/**"
+  - "**/node_modules/**"
+  - "**/vendor/**"
+  - "**/.venv/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/*.min.js"
+
+ignore_file: .secureprojects-ignore.yaml   # relative to the scanned project
+# custom_rules: secureprojects-rules.yaml
+
+limits:
+  max_file_size_bytes: 2097152   # 2 MiB; larger files are skipped by native analyzers
+  max_files: 50000
+  scan_timeout: 30m
+  tool_timeout: 10m
+  max_tool_output_bytes: 268435456
+  concurrency: 4
+  docker_memory: 2g
+
+scanners:
+  runner: auto                 # auto (local binary, else docker) | local | docker
+  # only: [native-secrets, trivy]
+  # disable: [semgrep]
+  settings:
+    trivy:
+      runner: auto
+      # image: aquasec/trivy:0.76.2
+      # args: ["--severity", "HIGH,CRITICAL"]
+    kics:
+      enabled: false           # opt-in (overlaps Checkov; has an unavoidable version check)
+    semgrep:
+      # config: ./my-semgrep-rules.yml   # added to the built-in offline rules
+    gitleaks: {}
+
+cache:
+  enabled: true
+  # dir: ~/.cache/secureprojects/results
+
+vulndb:
+  # dir: ~/.cache/secureprojects/osv
+  ecosystems: [Go, npm, PyPI, Maven, RubyGems, Packagist, crates.io, NuGet]
+  max_age_days: 7              # warn when the local OSV database is older
+
+active:                         # DAST — only with explicit authorization
+  allowed: false
+  # target_url: https://staging.example.com
+  # i_have_authorization: true
+  max_minutes: 10
+  zap_image: ghcr.io/zaproxy/zaproxy:stable
+
+llm:                            # optional, non-authoritative explanations
+  enabled: false
+  consent: false                # must be true to send finding metadata
+  provider: anthropic
+  model: claude-opus-5-5
+  api_key_env: ANTHROPIC_API_KEY
+  max_findings: 20
+  min_severity: high
+  send_snippets: false          # never sends files; true adds the redacted evidence line

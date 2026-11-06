@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "1.0.0",
+  "tool": {
+    "name": "SecureProjects",
+    "version": "1.2.3",
+    "url": "https://example.com"
+  },
+  "scan": {
+    "startedAt": "2026-11-06T10:00:00Z",
+    "finishedAt": "2026-11-06T10:00:02Z",
+    "durationMs": 2000,
+    "target": "fixture",
+    "targetType": "local",
+    "repository": "https://github.com/o/r",
+    "commit": "0123456789abcdef",
+    "offline": true,
+    "safe": true,
+    "activeScan": false,
+    "scanners": [
+      {
+        "name": "native-secrets",
+        "native": true,
+        "status": "ok",
+        "findings": 1,
+        "durationMs": 0
+      },
+      {
+        "name": "trivy",
+        "native": false,
+        "status": "skipped",
+        "message": "not found",
+        "installHint": "install it",
+        "findings": 0,
+        "durationMs": 0
+      }
+    ]
+  },
+  "summary": {
+    "total": 4,
+    "open": 3,
+    "suppressed": 1,
+    "bySeverity": {
+      "critical": 0,
+      "high": 2,
+      "info": 0,
+      "low": 1,
+      "medium": 0,
+      "unknown": 0
+    },
+    "byKind": {
+      "potential-risk": 2,
+      "vulnerability": 1
+    },
+    "byCategory": {
+      "dast": 1,
+      "dependency-vuln": 1,
+      "secret": 1
+    },
+    "byTool": {
+      "native-osv": 1,
+      "native-secrets": 1,
+      "trivy": 1,
+      "zap-baseline": 1
+    },
+    "byFile": {
+      "package-lock.json": 1,
+      "src/my config.js": 1
+    },
+    "gate": {
+      "failOn": "high",
+      "failed": true,
+      "failingCount": 2
+    }
+  },
+  "findings": [
+    {
+      "id": "1",
+      "fingerprint": "aaa",
+      "title": "CVE-2020-8203 in lodash@4.17.15: Prototype Pollution",
+      "kind": "vulnerability",
+      "category": "dependency-vuln",
+      "severity": "high",
+      "confidence": "high",
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "score": 7.4
+      },
+      "priority": 93,
+      "tools": [
+        "native-osv",
+        "trivy"
+      ],
+      "ruleId": "GHSA-p6mc-m468-83gw",
+      "location": {
+        "path": "package-lock.json",
+        "startLine": 15
+      },
+      "package": {
+        "name": "lodash",
+        "version": "4.17.15",
+        "ecosystem": "npm",
+        "fixedVersions": [
+          "4.17.19"
+        ],
+        "direct": true
+      },
+      "cve": [
+        "CVE-2020-8203"
+      ],
+      "cwe": [
+        "CWE-1321"
+      ],
+      "remediation": "Upgrade lodash to 4.17.19.",
+      "references": [
+        "https://osv.dev/vulnerability/GHSA-p6mc-m468-83gw",
+        "javascript:alert(1)"
+      ],
+      "triage": {
+        "status": "open"
+      }
+    },
+    {
+      "id": "",
+      "fingerprint": "bbb",
+      "title": "AWS access key ID in config.js \u003cscript\u003ealert(1)\u003c/script\u003e",
+      "kind": "potential-risk",
+      "category": "secret",
+      "severity": "high",
+      "confidence": "high",
+      "priority": 72,
+      "tools": [
+        "native-secrets"
+      ],
+      "ruleId": "SP-SECRET-AWS-ACCESS-KEY-ID",
+      "location": {
+        "path": "src/my config.js",
+        "startLine": 3
+      },
+      "evidence": "awsAccessKeyId: \"****REDACTED****\",",
+      "triage": {
+        "status": "open"
+      }
+    },
+    {
+      "id": "",
+      "fingerprint": "ccc",
+      "title": "No HEALTHCHECK",
+      "kind": "potential-risk",
+      "category": "container",
+      "severity": "info",
+      "confidence": "high",
+      "priority": 4,
+      "tools": [
+        "native-dockerfile"
+      ],
+      "ruleId": "SP-DOCKER-NO-HEALTHCHECK",
+      "location": {
+        "path": "Dockerfile",
+        "startLine": 1
+      },
+      "triage": {
+        "status": "accepted",
+        "justification": "probes in k8s",
+        "source": "ignore-file"
+      }
+    },
+    {
+      "id": "",
+      "fingerprint": "ddd",
+      "title": "Missing security header",
+      "kind": "potential-risk",
+      "category": "dast",
+      "severity": "low",
+      "confidence": "medium",
+      "priority": 0,
+      "tools": [
+        "zap-baseline"
+      ],
+      "ruleId": "zap-10038",
+      "location": {
+        "resource": "GET https://staging.example.com/"
+      },
+      "triage": {
+        "status": "open"
+      }
+    }
+  ],
+  "disclaimer": "Findings of kind 'vulnerability' were matched by a vulnerability database or a dedicated tool against an exact component version. Findings of kind 'potential-risk' come from heuristics or policy checks and are NOT confirmed vulnerabilities; review them before acting. Absence of findings does not prove absence of vulnerabilities. Only scan projects you own or are authorized to test."
+}

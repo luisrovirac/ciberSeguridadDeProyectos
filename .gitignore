@@ -1,0 +1,7 @@
+/bin/
+/dist/
+/secureprojects-report/
+coverage.out
+*.exe
+# third-party reference sources (not part of the product)
+/inspiration/

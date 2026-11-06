@@ -1,0 +1,53 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: standard # errcheck, govet, ineffassign, staticcheck, unused
+  enable:
+    - gosec
+    - bodyclose
+    - errorlint
+    - misspell
+    - revive
+    - unconvert
+    - nilerr
+  settings:
+    errcheck:
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (io.Closer).Close
+        - (*os.File).Close
+        - (*compress/gzip.Reader).Close
+        - (*archive/zip.ReadCloser).Close
+        - os.Remove
+    gosec:
+      excludes:
+        - G204 # subprocess with variable args: intentional (separated args, no shell)
+        - G304 # file inclusion via variable: scanner reads user-selected project files by design
+        - G306 # report files are written 0600 already; tests write temp files
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+  exclusions:
+    paths:
+      - inspiration
+      - testdata
+    rules:
+      - path: _test\.go
+        linters: [gosec, errcheck]
+
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    paths:
+      - inspiration
+      - testdata

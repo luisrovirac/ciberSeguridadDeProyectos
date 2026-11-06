@@ -1,0 +1,17 @@
+# Copy to .secureprojects-ignore.yaml in the root of the scanned project.
+# Every entry MUST have a reason. Suppressed findings stay in the reports
+# (marked with their triage status) but never fail CI.
+ignores:
+  - rule: SP-DOCKER-NO-HEALTHCHECK          # RuleID or rule family
+    path: "deploy/**"                        # optional glob
+    status: accepted                         # ignored (default) | false-positive | accepted
+    reason: Liveness/readiness probes are defined in the Kubernetes manifests.
+
+  - cve: CVE-2020-8203                       # any vulnerability id or alias
+    package: lodash
+    reason: Only used at build time; _.zipObjectDeep is never called. Tracked in SEC-123.
+    expires: 2027-03-31                      # re-evaluate after this date
+
+  - fingerprint: 3f1c...                     # exact finding (from the JSON report)
+    status: false-positive
+    reason: Test fixture with a revoked credential.

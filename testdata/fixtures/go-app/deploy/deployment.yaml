@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goapp
+  template:
+    metadata:
+      labels:
+        app: goapp
+    spec:
+      hostNetwork: true
+      containers:
+        - name: goapp
+          image: example.com/goapp:latest
+          securityContext:
+            privileged: true
