@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/secureprojects/secureprojects/internal/config"
-	"github.com/secureprojects/secureprojects/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
 )
 
 // Store is a directory of JSON result files.

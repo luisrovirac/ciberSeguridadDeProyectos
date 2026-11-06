@@ -9,24 +9,25 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
-	"github.com/secureprojects/secureprojects/internal/cache"
-	"github.com/secureprojects/secureprojects/internal/config"
-	"github.com/secureprojects/secureprojects/internal/dedup"
-	"github.com/secureprojects/secureprojects/internal/detector"
-	"github.com/secureprojects/secureprojects/internal/execx"
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/gitinfo"
-	"github.com/secureprojects/secureprojects/internal/llm"
-	"github.com/secureprojects/secureprojects/internal/policy"
-	"github.com/secureprojects/secureprojects/internal/report"
-	"github.com/secureprojects/secureprojects/internal/scanners"
-	"github.com/secureprojects/secureprojects/internal/scanners/native"
-	"github.com/secureprojects/secureprojects/internal/scanners/registry"
-	"github.com/secureprojects/secureprojects/internal/scoring"
-	"github.com/secureprojects/secureprojects/internal/version"
-	"github.com/secureprojects/secureprojects/internal/vulndb"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/cache"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/dedup"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/detector"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/execx"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/gitinfo"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/llm"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/policy"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/report"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/native"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/registry"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scoring"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/version"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/vulndb"
 )
 
 // Options are the per-invocation inputs that are not part of Config.
@@ -40,6 +41,8 @@ type Options struct {
 	Explainer llm.Explainer
 	// Now overrides the clock (tests).
 	Now func() time.Time
+	// Progress receives human-readable step messages for the user (may be nil).
+	Progress func(format string, args ...any)
 }
 
 // ErrConfig marks configuration/usage errors (exit code 3).
@@ -56,9 +59,14 @@ func Scan(ctx context.Context, cfg *config.Config, opts Options) (*report.Report
 		log = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
 	}
 	started := now().UTC()
+	step := opts.Progress
+	if step == nil {
+		step = func(string, ...any) {}
+	}
 
 	target, targetType, repoDisplay := opts.Target, "local", ""
 	if opts.RepoURL != "" {
+		step("Clonando el repositorio %s...", gitinfo.StripCredentials(opts.RepoURL))
 		log.Info("cloning repository into a temporary directory", "url", gitinfo.StripCredentials(opts.RepoURL))
 		dir, cleanup, err := gitinfo.Clone(ctx, opts.RepoURL, cfg.ScanGitHistory, cfg.Limits.ToolTimeout)
 		defer cleanup() // always remove the clone, even on errors
@@ -81,10 +89,13 @@ func Scan(ctx context.Context, cfg *config.Config, opts Options) (*report.Report
 		return nil, fmt.Errorf("%w: scan target %q is not a readable directory", ErrConfig, target)
 	}
 
+	step("Iniciando el escaneo de %s", root)
+	step("Detectando lenguajes, dependencias e infraestructura...")
 	profile, err := detector.Detect(root, cfg.Exclude, cfg.Limits.MaxFiles)
 	if err != nil {
 		return nil, err
 	}
+	step("Detectado: %s", describeProfile(profile))
 	git := gitinfo.Read(ctx, root)
 	if repoDisplay == "" {
 		repoDisplay = git.Remote
@@ -118,9 +129,11 @@ func Scan(ctx context.Context, cfg *config.Config, opts Options) (*report.Report
 		Root: root, Profile: profile, Config: cfg, Exec: execx.NewRunner(cfg, log), Log: log,
 		WorkDir: work, Commit: git.Commit,
 	}
+	step("Listando archivos a analizar...")
 	if err := scanners.ListFiles(req); err != nil {
 		return nil, err
 	}
+	step("%d archivos a analizar", len(req.Files))
 
 	list := opts.Scanners
 	if list == nil {
@@ -130,7 +143,7 @@ func Scan(ctx context.Context, cfg *config.Config, opts Options) (*report.Report
 		}
 		list = registry.All(dbDir, custom)
 	}
-	eng := &scanners.Engine{Scanners: list}
+	eng := &scanners.Engine{Scanners: list, Notify: opts.Progress}
 	if cfg.Cache.Enabled && !cfg.Active.Allowed {
 		if st, err := cache.New(cfg.Cache.Dir); err == nil {
 			eng.Cache = st
@@ -158,6 +171,7 @@ func Scan(ctx context.Context, cfg *config.Config, opts Options) (*report.Report
 		}
 	}
 
+	step("Analizadores terminados. Unificando y puntuando %d hallazgo(s)...", len(raw))
 	fs := dedup.Merge(raw)
 	policy.MarkKnownFalsePositives(fs)
 	if expired := policy.ApplyIgnores(fs, ignores, now()); expired > 0 {
@@ -177,6 +191,7 @@ func Scan(ctx context.Context, cfg *config.Config, opts Options) (*report.Report
 		if ex == nil {
 			ex = llm.NewAnthropic(cfg.LLM)
 		}
+		step("Pidiendo explicaciones al LLM...")
 		n := llm.Enrich(ctx, cfg.LLM, ex, fs, log)
 		log.Info("LLM explanations added (non-authoritative)", "count", n)
 	}
@@ -186,6 +201,7 @@ func Scan(ctx context.Context, cfg *config.Config, opts Options) (*report.Report
 	sum.Gate = report.Gate{FailOn: cfg.FailOn, Failed: len(failing) > 0, FailingCount: len(failing)}
 
 	finished := now().UTC()
+	step("Escaneo completado en %s: %d hallazgo(s)", finished.Sub(started).Round(time.Second), len(fs))
 	red := cfg.Redacted()
 	displayTarget := target
 	if targetType == "repository" {
@@ -204,6 +220,30 @@ func Scan(ctx context.Context, cfg *config.Config, opts Options) (*report.Report
 		Findings:   fs,
 		Disclaimer: report.Disclaimer,
 	}, nil
+}
+
+// describeProfile summarizes what the detector found in one line.
+func describeProfile(p *detector.Profile) string {
+	var parts []string
+	if len(p.Languages) > 0 {
+		parts = append(parts, "lenguajes "+strings.Join(p.Languages, ", "))
+	}
+	if len(p.Ecosystems) > 0 {
+		parts = append(parts, "ecosistemas "+strings.Join(p.Ecosystems, ", "))
+	}
+	for _, x := range []struct {
+		name string
+		n    int
+	}{{"Dockerfile", len(p.Dockerfile)}, {"compose", len(p.Compose)}, {"Terraform", len(p.Terraform)},
+		{"Kubernetes", len(p.K8s)}, {"Helm", len(p.Helm)}, {"CloudFormation", len(p.CloudForm)}} {
+		if x.n > 0 {
+			parts = append(parts, fmt.Sprintf("%d %s", x.n, x.name))
+		}
+	}
+	if len(parts) == 0 {
+		return fmt.Sprintf("%d archivos, sin lenguajes reconocidos", p.FileCount)
+	}
+	return fmt.Sprintf("%d archivos; %s", p.FileCount, strings.Join(parts, "; "))
 }
 
 func anyOK(st []scanners.Status, names ...string) bool {
@@ -229,8 +269,19 @@ func resolve(root, p string) string {
 	return filepath.Join(root, p)
 }
 
+// MarkdownPath is where the Markdown report goes: the current directory
+// when the output directory was left at its default, cfg.Output otherwise.
+func MarkdownPath(cfg *config.Config) string {
+	dir := cfg.Output
+	if dir == config.Default().Output {
+		dir = "."
+	}
+	return filepath.Join(dir, "secureprojects-report.md")
+}
+
 // WriteOutputs renders the requested formats. "table" goes to stdout,
-// the rest to files in cfg.Output. Returns the written file paths.
+// "md" to MarkdownPath, the rest to files in cfg.Output. Returns the
+// written file paths.
 func WriteOutputs(r *report.Report, cfg *config.Config, stdout *os.File) ([]string, error) {
 	var written []string
 	for _, f := range cfg.Formats {
@@ -249,6 +300,9 @@ func WriteOutputs(r *report.Report, cfg *config.Config, stdout *os.File) ([]stri
 		case "html":
 			p = filepath.Join(cfg.Output, "secureprojects-report.html")
 			err = report.WriteHTML(r, p)
+		case "md":
+			p = MarkdownPath(cfg)
+			err = report.WriteMarkdown(r, p)
 		}
 		if err != nil {
 			return written, fmt.Errorf("write %s report: %w", f, err)

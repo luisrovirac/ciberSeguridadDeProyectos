@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/secureprojects/secureprojects/internal/execx"
-	"github.com/secureprojects/secureprojects/internal/fsutil"
-	"github.com/secureprojects/secureprojects/internal/scanners"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/execx"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/fsutil"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners"
 )
 
 // base implements the boring parts of scanners.Scanner for native analyzers.

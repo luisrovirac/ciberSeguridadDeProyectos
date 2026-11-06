@@ -13,8 +13,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/fsutil"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/fsutil"
 )
 
 // IgnoreRule suppresses findings. Reason is mandatory: every suppression

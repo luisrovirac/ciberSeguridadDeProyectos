@@ -10,12 +10,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/secureprojects/secureprojects/internal/config"
-	"github.com/secureprojects/secureprojects/internal/detector"
-	"github.com/secureprojects/secureprojects/internal/execx"
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/normalizer"
-	"github.com/secureprojects/secureprojects/internal/scanners"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/detector"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/execx"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/normalizer"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners"
 )
 
 // builtinRules is a small offline ruleset shipped with SecureProjects so

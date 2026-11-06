@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
 )
 
 // Runner modes for external tools.
@@ -165,7 +165,7 @@ func Default() Config {
 // ErrInvalid wraps configuration validation errors (exit code 3).
 var ErrInvalid = errors.New("invalid configuration")
 
-var validFormats = map[string]bool{"json": true, "sarif": true, "html": true, "table": true}
+var validFormats = map[string]bool{"json": true, "sarif": true, "html": true, "table": true, "md": true}
 
 // Validate checks the configuration and normalizes some fields.
 func (c *Config) Validate() error {
@@ -177,8 +177,11 @@ func (c *Config) Validate() error {
 			if p == "" {
 				continue
 			}
+			if p == "markdown" {
+				p = "md"
+			}
 			if !validFormats[p] {
-				errs = append(errs, fmt.Errorf("unknown format %q (valid: json, sarif, html, table)", p))
+				errs = append(errs, fmt.Errorf("unknown format %q (valid: table, json, sarif, html, md)", p))
 			}
 			formats = append(formats, p)
 		}

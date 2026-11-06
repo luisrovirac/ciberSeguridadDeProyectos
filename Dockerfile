@@ -10,7 +10,7 @@ COPY cmd ./cmd
 COPY internal ./internal
 ARG VERSION=0.1.0-dev
 RUN CGO_ENABLED=0 go build -trimpath \
-    -ldflags "-s -w -X github.com/secureprojects/secureprojects/internal/version.Version=${VERSION}" \
+    -ldflags "-s -w -X github.com/luisrovirac/ciberSeguridadDeProyectos/internal/version.Version=${VERSION}" \
     -o /out/secureprojects ./cmd/secureprojects
 
 FROM gcr.io/distroless/static-debian12:nonroot

@@ -2,7 +2,7 @@
 # equivalent go commands shown in README.md.
 
 BINARY  ?= secureprojects
-PKG     := github.com/secureprojects/secureprojects
+PKG     := github.com/luisrovirac/ciberSeguridadDeProyectos
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo 0.1.0-dev)
 COMMIT  ?= $(shell git rev-parse HEAD 2>/dev/null)
 DATE    ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)

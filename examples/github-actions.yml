@@ -22,7 +22,7 @@ jobs:
           go-version: "1.26"
 
       - name: Install SecureProjects
-        run: go install github.com/secureprojects/secureprojects/cmd/secureprojects@latest
+        run: go install github.com/luisrovirac/ciberSeguridadDeProyectos/cmd/secureprojects@latest
 
       - name: Restore databases (OSV index, Trivy/OSV-Scanner DBs)
         uses: actions/cache@v4

@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/scoring"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scoring"
 )
 
 //go:embed templates/report.html.tmpl

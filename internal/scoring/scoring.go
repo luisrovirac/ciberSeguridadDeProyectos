@@ -17,8 +17,8 @@ import (
 	"math"
 	"slices"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/fsutil"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/fsutil"
 )
 
 // SeverityWeight is the base score used when no CVSS score exists.

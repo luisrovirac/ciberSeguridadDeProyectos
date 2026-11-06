@@ -10,10 +10,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/secureprojects/secureprojects/internal/config"
-	"github.com/secureprojects/secureprojects/internal/detector"
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/scanners"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/detector"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners"
 )
 
 // SchemaVersion of the JSON report. Bump the major version on breaking changes.

@@ -11,14 +11,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/scanners/gitleaks"
-	"github.com/secureprojects/secureprojects/internal/scanners/hadolint"
-	"github.com/secureprojects/secureprojects/internal/scanners/iac"
-	"github.com/secureprojects/secureprojects/internal/scanners/kubelinter"
-	"github.com/secureprojects/secureprojects/internal/scanners/osv"
-	"github.com/secureprojects/secureprojects/internal/scanners/semgrep"
-	"github.com/secureprojects/secureprojects/internal/scanners/trivy"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/gitleaks"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/hadolint"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/iac"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/kubelinter"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/osv"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/semgrep"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/trivy"
 )
 
 func output(t *testing.T, name string) []byte {

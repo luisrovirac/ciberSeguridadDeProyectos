@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/secureprojects/secureprojects/internal/vulndb/lockfiles"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/vulndb/lockfiles"
 )
 
 // OSV is the subset of the OSV schema (https://ossf.github.io/osv-schema/) we use.

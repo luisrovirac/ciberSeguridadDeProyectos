@@ -17,8 +17,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/vulndb"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/vulndb"
 )
 
 // Merge deduplicates findings and returns them in a stable order.

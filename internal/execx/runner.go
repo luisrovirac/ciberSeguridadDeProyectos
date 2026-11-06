@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/secureprojects/secureprojects/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/config"
 )
 
 // Mode says how a tool is executed.

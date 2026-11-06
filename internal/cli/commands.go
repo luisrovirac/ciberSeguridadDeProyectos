@@ -11,15 +11,15 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/secureprojects/secureprojects/internal/config"
-	"github.com/secureprojects/secureprojects/internal/dedup"
-	"github.com/secureprojects/secureprojects/internal/execx"
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/policy"
-	"github.com/secureprojects/secureprojects/internal/report"
-	"github.com/secureprojects/secureprojects/internal/scanners/registry"
-	"github.com/secureprojects/secureprojects/internal/version"
-	"github.com/secureprojects/secureprojects/internal/vulndb"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/dedup"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/execx"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/policy"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/report"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners/registry"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/version"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/vulndb"
 )
 
 func parseDuration(s string) (time.Duration, error) {
@@ -271,7 +271,7 @@ func newReportCmd(g *globalFlags) *cobra.Command {
 			return nil
 		},
 	}
-	merge.Flags().StringSliceVarP(&formats, "format", "f", []string{"json"}, "output formats: table,json,sarif,html")
+	merge.Flags().StringSliceVarP(&formats, "format", "f", []string{"json"}, "output formats: table,json,sarif,html,md")
 	merge.Flags().StringVarP(&output, "output", "o", "", "output directory")
 	merge.Flags().StringVar(&failOn, "fail-on", "high", "gate threshold for the merged report")
 	rep.AddCommand(merge)
@@ -336,6 +336,9 @@ func writeMerged(r *report.Report, cfg *config.Config) ([]string, error) {
 		case "html":
 			p = cfg.Output + "/secureprojects-merged.html"
 			err = report.WriteHTML(r, p)
+		case "md":
+			p = cfg.Output + "/secureprojects-merged.md"
+			err = report.WriteMarkdown(r, p)
 		}
 		if err != nil {
 			return out, err

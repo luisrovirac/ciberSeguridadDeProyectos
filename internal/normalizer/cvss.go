@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
 )
 
 // CVSS3BaseScore computes the CVSS v3.0/v3.1 base score from a vector string

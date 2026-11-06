@@ -5,14 +5,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"slices"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/spf13/cobra"
 
-	"github.com/secureprojects/secureprojects/internal/app"
-	"github.com/secureprojects/secureprojects/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/app"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/report"
 )
 
 type scanFlags struct {
@@ -69,7 +75,7 @@ func newScanCmd(g *globalFlags) *cobra.Command {
 	fl := cmd.Flags()
 	fl.StringVarP(&f.configFile, "config", "c", "", "YAML configuration file")
 	fl.StringVar(&f.repo, "repo", "", "Git repository URL to clone temporarily and scan (https://, ssh://, git@host:path)")
-	fl.StringSliceVarP(&f.formats, "format", "f", nil, "output formats: table,json,sarif,html (default table)")
+	fl.StringSliceVarP(&f.formats, "format", "f", nil, "output formats: table,json,sarif,html,md (default table; md is written to the current directory unless --output is set)")
 	fl.StringVarP(&f.output, "output", "o", "", "directory for report files (default ./secureprojects-report)")
 	fl.StringVar(&f.failOn, "fail-on", "", "exit 1 if open findings reach this severity: critical|high|medium|low|info|none (default high)")
 	fl.StringVar(&f.baseline, "baseline", "", "previous SecureProjects JSON report to compare against")
@@ -131,7 +137,11 @@ func runScan(cmd *cobra.Command, g *globalFlags, f *scanFlags, args []string) er
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	rep, err := app.Scan(ctx, &cfg, app.Options{Target: target, RepoURL: f.repo, Log: log})
+	opts := app.Options{Target: target, RepoURL: f.repo, Log: log}
+	if !g.quiet {
+		opts.Progress = progressPrinter(os.Stderr)
+	}
+	rep, err := app.Scan(ctx, &cfg, opts)
 	if err != nil {
 		return &exitError{codeFor(err), err}
 	}
@@ -150,6 +160,20 @@ func runScan(cmd *cobra.Command, g *globalFlags, f *scanFlags, args []string) er
 	if err != nil {
 		return &exitError{ExitError, err}
 	}
+	// Offer the Markdown report when the user did not choose formats and
+	// someone is at the keyboard (never blocks CI or piped runs).
+	if !g.quiet && !cmd.Flags().Changed("format") && !slices.Contains(cfg.Formats, "md") && isTerminal(os.Stdin) && isTerminal(os.Stderr) {
+		path := app.MarkdownPath(&cfg)
+		if abs, err := filepath.Abs(path); err == nil {
+			path = abs
+		}
+		if askYesNo(fmt.Sprintf("\n¿Generar el informe en Markdown en %s? [S/n]: ", path), true) {
+			if err := report.WriteMarkdown(rep, path); err != nil {
+				return &exitError{ExitError, fmt.Errorf("write md report: %w", err)}
+			}
+			written = append(written, path)
+		}
+	}
 	if !g.quiet {
 		for _, p := range written {
 			fmt.Fprintln(os.Stderr, "report written:", p)
@@ -159,6 +183,19 @@ func runScan(cmd *cobra.Command, g *globalFlags, f *scanFlags, args []string) er
 		return &exitError{code: ExitFindings}
 	}
 	return nil
+}
+
+// progressPrinter writes step messages to w, prefixed with the elapsed time.
+// Progress goes to stderr so stdout keeps only the report table.
+func progressPrinter(w io.Writer) func(string, ...any) {
+	start := time.Now()
+	var mu sync.Mutex
+	return func(format string, args ...any) {
+		el := time.Since(start)
+		mu.Lock()
+		defer mu.Unlock()
+		fmt.Fprintf(w, "[%02d:%02d] %s\n", int(el.Minutes()), int(el.Seconds())%60, fmt.Sprintf(format, args...))
+	}
 }
 
 func applyScanFlags(cmd *cobra.Command, f *scanFlags, cfg *config.Config) error {
@@ -252,6 +289,29 @@ func applyScanFlags(cmd *cobra.Command, f *scanFlags, cfg *config.Config) error 
 		}
 	}
 	return nil
+}
+
+func isTerminal(f *os.File) bool {
+	st, err := f.Stat()
+	return err == nil && st.Mode()&os.ModeCharDevice != 0
+}
+
+// askYesNo prompts on stderr and reads one line from stdin. An empty answer
+// returns def; it accepts s/si/sí/y/yes and n/no.
+func askYesNo(prompt string, def bool) bool {
+	fmt.Fprint(os.Stderr, prompt)
+	line, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil && line == "" {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(line)) {
+	case "":
+		return def
+	case "s", "si", "sí", "y", "yes":
+		return true
+	default:
+		return false
+	}
 }
 
 func confirmInteractive() bool {

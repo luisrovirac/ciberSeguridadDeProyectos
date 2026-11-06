@@ -3,7 +3,7 @@ package scoring
 import (
 	"testing"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
 )
 
 func TestScoreOrdering(t *testing.T) {

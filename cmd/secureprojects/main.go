@@ -4,7 +4,7 @@ package main
 import (
 	"os"
 
-	"github.com/secureprojects/secureprojects/internal/cli"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/cli"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
 )
 
 func TestIgnoreFileRequiresReason(t *testing.T) {

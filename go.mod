@@ -1,4 +1,4 @@
-module github.com/secureprojects/secureprojects
+module github.com/luisrovirac/ciberSeguridadDeProyectos
 
 go 1.26.5
 

@@ -12,8 +12,8 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/scanners"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners"
 )
 
 func testdata(p ...string) string {
@@ -155,5 +155,33 @@ func TestTable(t *testing.T) {
 	}
 	if strings.Contains(s, "No HEALTHCHECK") {
 		t.Error("suppressed findings must not be listed in the table")
+	}
+}
+
+func TestMarkdown(t *testing.T) {
+	r := sample()
+	r.Findings[1].Title = "Pipe | in title"
+	r.Findings[1].Evidence = "x := ```code```"
+	var buf bytes.Buffer
+	RenderMarkdown(&buf, r)
+	s := buf.String()
+	for _, want := range []string{
+		"# Informe de seguridad — SecureProjects 1.2.3",
+		"Vulnerabilidades confirmadas: **1**",
+		"Puerta de CI: **FALLA**",
+		"`lodash@4.17.15 (npm)` — corregido en: 4.17.19",
+		`Pipe \| in title`,            // pipes escaped in table cells
+		"````\nx := ```code```\n````", // fence longer than backticks in evidence
+		"## Hallazgos suprimidos (1)",
+		"probes in k8s",
+		"install it",
+	} {
+		if !strings.Contains(s, want) {
+			t.Errorf("markdown missing %q:\n%s", want, s)
+		}
+	}
+	p := filepath.Join(t.TempDir(), "r.md")
+	if err := WriteMarkdown(r, p); err != nil {
+		t.Fatal(err)
 	}
 }

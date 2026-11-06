@@ -30,7 +30,7 @@ SecureProjects es un **orquestador híbrido**:
 Requiere Go ≥ 1.24 para compilar (se probó con Go 1.26).
 
 ```bash
-go install github.com/secureprojects/secureprojects/cmd/secureprojects@latest
+go install github.com/luisrovirac/ciberSeguridadDeProyectos/cmd/secureprojects@latest
 # o desde el código:
 make build             # -> bin/secureprojects  (Windows: bin/secureprojects.exe)
 ```
@@ -99,7 +99,7 @@ secureprojects version
 |---|---|
 | `--repo <url>` | Clona (https/ssh/`git@`) en un directorio temporal y lo elimina siempre al terminar |
 | `-c, --config <archivo>` | Configuración YAML (ver [`secureprojects.example.yaml`](secureprojects.example.yaml)) |
-| `-f, --format` | `table,json,sarif,html` |
+| `-f, --format` | `table,json,sarif,html,md` (sin `-f`, al terminar pregunta si generar el `.md`) |
 | `-o, --output <dir>` | Directorio de informes (`secureprojects-report` por defecto) |
 | `--fail-on` | `critical\|high\|medium\|low\|info\|none` (por defecto `high`) |
 | `--baseline <json>` / `--diff` | Compara con un informe previo / muestra solo lo nuevo |
@@ -177,7 +177,7 @@ jobs:
       - uses: actions/setup-go@v5
         with: { go-version: "1.26" }
       - name: Install SecureProjects
-        run: go install github.com/secureprojects/secureprojects/cmd/secureprojects@latest
+        run: go install github.com/luisrovirac/ciberSeguridadDeProyectos/cmd/secureprojects@latest
       - name: Cache OSV database and tool DBs
         uses: actions/cache@v4
         with:
@@ -210,7 +210,7 @@ Solo hallazgos nuevos en PR: guarda el JSON de `main` como artefacto y usa
 secureprojects:
   image: golang:1.26
   script:
-    - go install github.com/secureprojects/secureprojects/cmd/secureprojects@latest
+    - go install github.com/luisrovirac/ciberSeguridadDeProyectos/cmd/secureprojects@latest
     - secureprojects db update
     - secureprojects scan . -f table,sarif,json -o reports --fail-on high
   artifacts:

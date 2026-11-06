@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/secureprojects/secureprojects/internal/config"
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/report"
-	"github.com/secureprojects/secureprojects/internal/scanners"
-	"github.com/secureprojects/secureprojects/internal/vulndb"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/report"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/vulndb"
 )
 
 func testdata(p ...string) string {

@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/secureprojects/secureprojects/internal/fsutil"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/fsutil"
 )
 
 // Profile summarizes the technologies detected in a project.

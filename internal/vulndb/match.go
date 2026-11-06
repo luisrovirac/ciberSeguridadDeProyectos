@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/secureprojects/secureprojects/internal/vulndb/version"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/vulndb/version"
 )
 
 // Match is a vulnerability affecting a specific package version.

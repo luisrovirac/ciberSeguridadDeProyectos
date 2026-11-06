@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
 )
 
 func fp(f finding.Finding) finding.Finding {

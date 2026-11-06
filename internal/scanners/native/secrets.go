@@ -7,13 +7,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/secureprojects/secureprojects/internal/config"
-	"github.com/secureprojects/secureprojects/internal/detector"
-	"github.com/secureprojects/secureprojects/internal/execx"
-	"github.com/secureprojects/secureprojects/internal/finding"
-	"github.com/secureprojects/secureprojects/internal/fsutil"
-	"github.com/secureprojects/secureprojects/internal/redact"
-	"github.com/secureprojects/secureprojects/internal/scanners"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/config"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/detector"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/execx"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/fsutil"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/redact"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/scanners"
 )
 
 // secretRule is a pattern-based secret detector. Several regexes are adapted

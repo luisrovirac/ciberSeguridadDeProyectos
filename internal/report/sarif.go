@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/secureprojects/secureprojects/internal/finding"
+	"github.com/luisrovirac/ciberSeguridadDeProyectos/internal/finding"
 )
 
 // SARIF 2.1.0 structures (subset). Spec: https://docs.oasis-open.org/sarif/sarif/v2.1.0/
